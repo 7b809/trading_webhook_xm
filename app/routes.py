@@ -6,6 +6,17 @@ from app.config import Config
 
 webhook = Blueprint("webhook", __name__)
 
+# ✅ HOME ROUTE (Health Check)
+@webhook.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "status": "running",
+        "service": "Trading Webhook API",
+        "message": "Webhook server is live 🚀"
+    }), 200
+
+
+# ✅ WEBHOOK ROUTE
 @webhook.route("/webhook", methods=["POST"])
 def handle_webhook():
     data = request.get_json()
@@ -18,7 +29,10 @@ def handle_webhook():
     time = data.get("Time")
     description = data.get("Description")
 
-    if ticker != Config.FILTER_TICKER or Config.FILTER_NAME not in name:
+    # ✅ MULTI STRATEGY FILTER
+    allowed_names = [x.strip() for x in Config.FILTER_NAMES.split(",") if x.strip()]
+
+    if not any(strategy in (name or "") for strategy in allowed_names):
         return jsonify({"status": "ignored"}), 200
 
     parsed = parse_description(description)

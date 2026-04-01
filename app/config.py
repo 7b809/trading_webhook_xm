@@ -12,4 +12,4 @@ class Config:
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
     FILTER_TICKER = os.getenv("FILTER_TICKER")
-    FILTER_NAME = os.getenv("FILTER_NAME")
+    FILTER_NAMES = os.getenv("FILTER_NAMES", "")
