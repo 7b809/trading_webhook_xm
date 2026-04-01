@@ -20,6 +20,8 @@ def home():
 @webhook.route("/webhook", methods=["POST"])
 def handle_webhook():
     data = request.get_json()
+    
+    send_telegram_message(f"{data}")
 
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
