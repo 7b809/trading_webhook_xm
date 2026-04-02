@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    PORT = int(os.getenv("FLASK_PORT", 5000))
+    
     MONGO_URI = os.getenv("MONGO_URI")
     DB_NAME = os.getenv("DB_NAME")
-    COLLECTION_NAME = os.getenv("COLLECTION_NAME")
-
+    
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+    DEFAULT_CHAT_ID = os.getenv("DEFAULT_CHAT_ID")
 
-    FILTER_TICKER = os.getenv("FILTER_TICKER")
-    FILTER_NAMES = os.getenv("FILTER_NAMES", "")
+    TEST_LOG = os.getenv("TEST_LOG", "false").lower() == "true"
