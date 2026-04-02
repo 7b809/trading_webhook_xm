@@ -13,3 +13,10 @@ class Config:
     DEFAULT_CHAT_ID = os.getenv("DEFAULT_CHAT_ID")
 
     TEST_LOG = os.getenv("TEST_LOG", "false").lower() == "true"
+
+
+    WEBHOOK_MAP = {
+        1: "nifty",
+        2: "giftnifty",
+        3: "btc"
+    }    
