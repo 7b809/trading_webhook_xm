@@ -8,6 +8,7 @@ __pycache__/
 temp
 test
 tests
+.env
 # Distribution / packaging
 .Python
 build/

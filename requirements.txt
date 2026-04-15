@@ -1,6 +1,5 @@
-
+dhanhq
 flask
-pymongo
-requests
+flask-socketio
 python-dotenv
-pytz
+eventlet
