@@ -12,7 +12,6 @@ def home():
     return {
         "status": "running",
         "service": "webhook-relay",
-        "target": Config.TARGET_URL
     }
 
 @app.route("/webhook", methods=["POST"])
