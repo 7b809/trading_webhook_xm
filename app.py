@@ -11,7 +11,7 @@ Config.validate()
 def home():
     return {
         "status": "running",
-        "service": "webhook-relay",
+        "service": "webhook-relay"
     }
 
 @app.route("/webhook", methods=["POST"])
