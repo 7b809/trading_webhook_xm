@@ -15,21 +15,13 @@ def home():
     }
 
 @app.route("/webhook", methods=["POST"])
+@app.route("/webhook/", methods=["POST"])  # handle trailing slash too
 def webhook():
     try:
         data = request.get_json()
 
-        if not data or "message" not in data:
+        if not data:
             return jsonify({"error": "Invalid payload"}), 400
-
-        raw_message = data["message"]
-
-        parsed = parse_message(raw_message)
-
-        forward_payload = {
-            "raw_message": raw_message,
-            "parsed": parsed
-        }
 
         headers = {
             "Content-Type": "application/json",
@@ -38,15 +30,14 @@ def webhook():
 
         response = requests.post(
             Config.TARGET_URL,
-            json=forward_payload,
+            json=data,  # 🔥 forward EXACTLY as received
             headers=headers,
             timeout=Config.TIMEOUT
         )
 
         return jsonify({
             "status": "forwarded",
-            "target_status": response.status_code,
-            "parsed": parsed
+            "target_status": response.status_code
         })
 
     except Exception as e:
