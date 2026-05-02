@@ -1,72 +1,57 @@
 from flask import Flask, request, jsonify
 import requests
-import threading
 from config import Config
+from utils import parse_message
 
 app = Flask(__name__)
 
+Config.validate()
 
-# -----------------------------------
-# 🔁 ASYNC SENDER (BACKGROUND)
-# -----------------------------------
-def send_async(url, data):
-    try:
-        print(f"[ASYNC] Sending → {url}")
-        response = requests.post(url, json=data, timeout=10)
-        print(f"[ASYNC] Response → {response.status_code} | {response.text}")
-    except Exception as e:
-        print(f"[ASYNC ERROR] {str(e)}")
+@app.route("/", methods=["GET"])
+def home():
+    return {
+        "status": "running",
+        "service": "webhook-relay",
+        "target": Config.TARGET_URL
+    }
 
-
-# -----------------------------------
-# 📡 WEBHOOK RELAY
-# -----------------------------------
-@app.route("/webhook/tradingview/<int:security_id>/", methods=["POST"])
-def relay(security_id):
+@app.route("/webhook", methods=["POST"])
+def webhook():
     try:
         data = request.get_json()
 
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": "No JSON received"
-            }), 400
+        if not data or "message" not in data:
+            return jsonify({"error": "Invalid payload"}), 400
 
-        target_url = f"{Config.TARGET_BASE_URL}/webhook/tradingview/{security_id}/"
+        raw_message = data["message"]
 
-        print(f"[RELAY] Incoming → {data}")
-        print(f"[RELAY] Forwarding → {target_url}")
+        parsed = parse_message(raw_message)
 
-        # 🔥 ASYNC CALL (NO BLOCKING)
-        thread = threading.Thread(target=send_async, args=(target_url, data))
-        thread.daemon = True
-        thread.start()
+        forward_payload = {
+            "raw_message": raw_message,
+            "parsed": parsed
+        }
 
-        # ✅ INSTANT RESPONSE (IMPORTANT)
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": Config.API_KEY
+        }
+
+        response = requests.post(
+            Config.TARGET_URL,
+            json=forward_payload,
+            headers=headers,
+            timeout=Config.TIMEOUT
+        )
+
         return jsonify({
-            "status": "received"
-        }), 200
+            "status": "forwarded",
+            "target_status": response.status_code,
+            "parsed": parsed
+        })
 
     except Exception as e:
-        print(f"[RELAY ERROR] {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
-
-# -----------------------------------
-# 🏠 HEALTH CHECK
-# -----------------------------------
-@app.route("/", methods=["GET"])
-def home():
-    return "🚀 Railway Webhook Relay Running"
-
-
-# -----------------------------------
-# 🚀 RUN
-# -----------------------------------
 if __name__ == "__main__":
-    import os
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
